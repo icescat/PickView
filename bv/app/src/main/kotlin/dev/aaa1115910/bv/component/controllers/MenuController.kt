@@ -1,0 +1,385 @@
+package dev.aaa1115910.bv.component.controllers
+
+import android.content.Context
+import android.util.Log
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandHorizontally
+import androidx.compose.animation.shrinkHorizontally
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.ClosedCaption
+import androidx.compose.material.icons.outlined.Image
+import androidx.compose.material.icons.outlined.Speed
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.tv.material3.Surface
+import androidx.tv.material3.SurfaceDefaults
+import dev.aaa1115910.biliapi.entity.video.Subtitle
+import dev.aaa1115910.biliapi.entity.video.SubtitleAiStatus
+import dev.aaa1115910.biliapi.entity.video.SubtitleAiType
+import dev.aaa1115910.biliapi.entity.video.SubtitleType
+import dev.aaa1115910.bv.R
+import dev.aaa1115910.bv.component.controllers.playermenu.ClosedCaptionMenuList
+import dev.aaa1115910.bv.component.controllers.playermenu.MenuNavList
+import dev.aaa1115910.bv.component.controllers.playermenu.PictureMenuList
+import dev.aaa1115910.bv.component.controllers.playermenu.PlaySpeedItem
+import dev.aaa1115910.bv.component.controllers.playermenu.PlaySpeedMenuList
+import dev.aaa1115910.bv.entity.Audio
+import dev.aaa1115910.bv.entity.VideoAspectRatio
+import dev.aaa1115910.bv.entity.VideoCodec
+import dev.aaa1115910.bv.ui.state.PlayerUiState
+import dev.aaa1115910.bv.ui.theme.BVTheme
+
+@Composable
+fun MenuController(
+    modifier: Modifier = Modifier,
+    show: Boolean,
+    uiState: PlayerUiState,
+    onResolutionChange: (Int) -> Unit = {},
+    onCodecChange: (VideoCodec) -> Unit = {},
+    onAspectRatioChange: (VideoAspectRatio) -> Unit,
+    onPlaySpeedChange: (Float) -> Unit = {},
+    onAudioChange: (Audio) -> Unit,
+    onSubtitleChange: (Subtitle) -> Unit,
+    onSubtitleSizeChange: (TextUnit) -> Unit,
+    onSubtitleBackgroundOpacityChange: (Float) -> Unit,
+    onSubtitleBottomPadding: (Dp) -> Unit
+) {
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(show) {
+        if (show) {
+            focusRequester.requestFocus()
+        }
+    }
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .focusRequester(focusRequester)
+            .onFocusChanged { Log.d("MenuController", "focus: $it") },
+        contentAlignment = Alignment.CenterEnd
+    ) {
+        AnimatedVisibility(
+            visible = show,
+            enter = expandHorizontally(),
+            exit = shrinkHorizontally()
+        ) {
+            MenuController(
+                uiState = uiState,
+                onResolutionChange = onResolutionChange,
+                onCodecChange = onCodecChange,
+                onAspectRatioChange = onAspectRatioChange,
+                onPlaySpeedChange = onPlaySpeedChange,
+                onAudioChange = onAudioChange,
+                onSubtitleChange = onSubtitleChange,
+                onSubtitleSizeChange = onSubtitleSizeChange,
+                onSubtitleBackgroundOpacityChange = onSubtitleBackgroundOpacityChange,
+                onSubtitleBottomPadding = onSubtitleBottomPadding
+            )
+        }
+    }
+}
+
+@Composable
+fun MenuController(
+    modifier: Modifier = Modifier,
+    uiState: PlayerUiState,
+    onResolutionChange: (Int) -> Unit = {},
+    onCodecChange: (VideoCodec) -> Unit = {},
+    onAspectRatioChange: (VideoAspectRatio) -> Unit,
+    onPlaySpeedChange: (Float) -> Unit,
+    onAudioChange: (Audio) -> Unit,
+    onSubtitleChange: (Subtitle) -> Unit,
+    onSubtitleSizeChange: (TextUnit) -> Unit,
+    onSubtitleBackgroundOpacityChange: (Float) -> Unit,
+    onSubtitleBottomPadding: (Dp) -> Unit
+) {
+    var selectedNavItem by remember { mutableStateOf(VideoPlayerMenuNavItem.PlaySpeed) }
+    var focusState by remember { mutableStateOf(MenuFocusState.MenuNav) }
+
+    Surface(
+        modifier = modifier
+            .fillMaxHeight(),
+        colors = SurfaceDefaults.colors(
+            containerColor = Color.Black.copy(alpha = 0.5f)
+        )
+    ) {
+        CompositionLocalProvider(
+            LocalMenuFocusStateData provides MenuFocusStateData(
+                focusState = focusState
+            )
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                MenuList(
+                    uiState = uiState,
+                    selectedNavMenu = selectedNavItem,
+                    onResolutionChange = onResolutionChange,
+                    onCodecChange = onCodecChange,
+                    onPlaySpeedChange = onPlaySpeedChange,
+                    onAspectRatioChange = onAspectRatioChange,
+                    onAudioChange = onAudioChange,
+                    onFocusStateChange = { focusState = it },
+                    onSubtitleChange = onSubtitleChange,
+                    onSubtitleSizeChange = onSubtitleSizeChange,
+                    onSubtitleBackgroundOpacityChange = onSubtitleBackgroundOpacityChange,
+                    onSubtitleBottomPadding = onSubtitleBottomPadding
+                )
+                MenuNavList(
+                    modifier = Modifier
+                        .onPreviewKeyEvent {
+                            if (it.type == KeyEventType.KeyUp) {
+                                if (listOf(Key.Enter, Key.DirectionCenter).contains(it.key)) {
+                                    return@onPreviewKeyEvent false
+                                }
+                                return@onPreviewKeyEvent true
+                            }
+                            if (it.key == Key.DirectionLeft) focusState = MenuFocusState.Menu
+                            false
+                        },
+                    selectedMenu = selectedNavItem,
+                    onSelectedChanged = { selectedNavItem = it },
+                    isFocusing = focusState == MenuFocusState.MenuNav
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun MenuList(
+    modifier: Modifier = Modifier,
+    uiState: PlayerUiState,
+    selectedNavMenu: VideoPlayerMenuNavItem,
+    onResolutionChange: (Int) -> Unit,
+    onCodecChange: (VideoCodec) -> Unit,
+    onAspectRatioChange: (VideoAspectRatio) -> Unit,
+    onPlaySpeedChange: (Float) -> Unit,
+    onAudioChange: (Audio) -> Unit,
+    onSubtitleChange: (Subtitle) -> Unit,
+    onSubtitleSizeChange: (TextUnit) -> Unit,
+    onSubtitleBackgroundOpacityChange: (Float) -> Unit,
+    onSubtitleBottomPadding: (Dp) -> Unit,
+    onFocusStateChange: (MenuFocusState) -> Unit
+) {
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        when (selectedNavMenu) {
+            VideoPlayerMenuNavItem.Picture -> {
+                PictureMenuList(
+                    availableQualityIds = uiState.availableQuality.keys.toList(),
+                    availableAudio = uiState.availableAudio,
+                    availableVideoCodec = uiState.availableVideoCodec,
+                    currentResolution = uiState.mediaProfileState.qualityId,
+                    currentVideoCodec = uiState.mediaProfileState.videoCodec,
+                    currentVideoAspectRatio = uiState.aspectRatio,
+                    currentAudio = uiState.mediaProfileState.audio,
+                    onResolutionChange = onResolutionChange,
+                    onCodecChange = onCodecChange,
+                    onAspectRatioChange = onAspectRatioChange,
+                    onAudioChange = onAudioChange,
+                    onFocusStateChange = onFocusStateChange,
+                )
+            }
+
+            VideoPlayerMenuNavItem.PlaySpeed -> {
+                PlaySpeedMenuList(
+                    currentSelectedPlaySpeedItem = PlaySpeedItem.fromSpeed(uiState.playSpeed),
+                    onPlaySpeedChange = onPlaySpeedChange,
+                    onFocusStateChange = onFocusStateChange,
+                )
+            }
+
+            VideoPlayerMenuNavItem.ClosedCaption -> {
+                ClosedCaptionMenuList(
+                    currentSubtitleId = uiState.subtitleId,
+                    availableSubtitleTracks = buildList {
+                        add(
+                            Subtitle(
+                                id = -1,
+                                lang = "",
+                                langDoc = "关闭",
+                                url = "",
+                                type = SubtitleType.CC,
+                                aiType = SubtitleAiType.Normal,
+                                aiStatus = SubtitleAiStatus.None
+                            )
+                        )
+                        addAll(uiState.subtitleList)
+                        sortBy { it.id }
+                    },
+                    currentFontSize = uiState.subtitleState.fontSize,
+                    currentOpacity = uiState.subtitleState.opacity,
+                    currentPadding = uiState.subtitleState.bottomPadding,
+                    onSubtitleChange = onSubtitleChange,
+                    onSubtitleSizeChange = onSubtitleSizeChange,
+                    onSubtitleBackgroundOpacityChange = onSubtitleBackgroundOpacityChange,
+                    onSubtitleBottomPadding = onSubtitleBottomPadding,
+                    onFocusStateChange = onFocusStateChange,
+                )
+            }
+        }
+    }
+}
+
+
+enum class VideoPlayerMenuNavItem(private val strRes: Int, val icon: ImageVector) {
+    PlaySpeed(R.string.video_player_menu_picture_play_speed, Icons.Outlined.Speed),
+    Picture(R.string.video_player_menu_nav_picture, Icons.Outlined.Image),
+    ClosedCaption(R.string.video_player_menu_nav_subtitle, Icons.Outlined.ClosedCaption);
+
+    fun getDisplayName(context: Context) = context.getString(strRes)
+}
+
+enum class VideoPlayerPictureMenuItem(private val strRes: Int) {
+    Resolution(R.string.video_player_menu_picture_resolution),
+    Codec(R.string.video_player_menu_picture_codec),
+    AspectRatio(R.string.video_player_menu_picture_aspect_ratio),
+
+    //    PlaySpeed(R.string.video_player_menu_picture_play_speed),
+    Audio(R.string.video_player_menu_picture_audio);
+
+    fun getDisplayName(context: Context) = context.getString(strRes)
+}
+
+enum class VideoPlayerClosedCaptionMenuItem(private val strRes: Int) {
+    Switch(R.string.video_player_menu_subtitle_switch),
+    Size(R.string.video_player_menu_subtitle_size),
+    Opacity(R.string.video_player_menu_subtitle_background_opacity),
+    Padding(R.string.video_player_menu_subtitle_bottom_padding);
+
+    fun getDisplayName(context: Context) = context.getString(strRes)
+}
+
+@Preview(device = "id:tv_1080p")
+@Composable
+fun MenuControllerPreview() {
+    var currentResolution by remember { mutableIntStateOf(1) }
+    var currentCodec by remember { mutableStateOf(VideoCodec.HEVC) }
+    var currentVideoAspectRatio by remember { mutableStateOf(VideoAspectRatio.Default) }
+    var currentPlaySpeed by remember { mutableFloatStateOf(1f) }
+    var currentSelectedPlaySpeedItem by remember { mutableStateOf(PlaySpeedItem.x1) }
+    var currentAudio by remember { mutableStateOf(Audio.A192K) }
+
+    var currentSubtitleId by remember { mutableLongStateOf(-1L) }
+    val currentSubtitleList = remember { mutableStateListOf<Subtitle>() }
+    var currentSubtitleFontSize by remember { mutableStateOf(24.sp) }
+    var currentSubtitleBackgroundOpacity by remember { mutableFloatStateOf(0.4f) }
+    var currentSubtitleBottomPadding by remember { mutableStateOf(8.dp) }
+
+    LaunchedEffect(Unit) {
+        currentSubtitleList.apply {
+            addAll(
+                listOf(
+                    Subtitle(
+                        id = -1,
+                        langDoc = "关闭",
+                        lang = "",
+                        url = "",
+                        type = SubtitleType.CC,
+                        aiType = SubtitleAiType.Normal,
+                        aiStatus = SubtitleAiStatus.None
+                    ),
+                    Subtitle(
+                        id = 1111,
+                        langDoc = "ai-zh",
+                        lang = "中文（自动翻译）",
+                        url = "",
+                        type = SubtitleType.CC,
+                        aiType = SubtitleAiType.Normal,
+                        aiStatus = SubtitleAiStatus.None
+                    ),
+                    Subtitle(
+                        id = 222,
+                        lang = "zh",
+                        langDoc = "中文",
+                        url = "",
+                        type = SubtitleType.CC,
+                        aiType = SubtitleAiType.Normal,
+                        aiStatus = SubtitleAiStatus.None
+                    ),
+                    Subtitle(
+                        id = 1333,
+                        lang = "ai-en",
+                        langDoc = "English",
+                        url = "",
+                        type = SubtitleType.CC,
+                        aiType = SubtitleAiType.Normal,
+                        aiStatus = SubtitleAiStatus.None
+                    )
+                )
+            )
+        }
+    }
+
+    BVTheme {
+        Surface(
+            colors = SurfaceDefaults.colors(
+                containerColor = Color.White
+            )
+        ) {
+            Box(modifier = Modifier.fillMaxSize()) {
+                MenuController(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd),
+                    uiState = PlayerUiState(),
+                    onResolutionChange = { currentResolution = it },
+                    onCodecChange = { currentCodec = it },
+                    onAspectRatioChange = { currentVideoAspectRatio = it },
+                    onPlaySpeedChange = { currentPlaySpeed = it },
+                    onAudioChange = { currentAudio = it },
+                    onSubtitleChange = { currentSubtitleId = it.id },
+                    onSubtitleSizeChange = { currentSubtitleFontSize = it },
+                    onSubtitleBackgroundOpacityChange = {
+                        currentSubtitleBackgroundOpacity = it
+                    },
+                    onSubtitleBottomPadding = { currentSubtitleBottomPadding = it }
+                )
+            }
+        }
+    }
+}
+
+enum class MenuFocusState {
+    MenuNav, Menu, Items
+}
+
+data class MenuFocusStateData(
+    val focusState: MenuFocusState = MenuFocusState.MenuNav
+)
+
+val LocalMenuFocusStateData = compositionLocalOf { MenuFocusStateData() }

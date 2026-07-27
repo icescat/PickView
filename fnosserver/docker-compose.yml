@@ -1,0 +1,18 @@
+services:
+  bilipick-server:
+    image: python:3.11-slim
+    container_name: bilipick-server
+    working_dir: /app
+    command: >
+      sh -c "pip install fastapi uvicorn pydantic httpx -q &&
+             uvicorn main:app --host 0.0.0.0 --port 9530"
+    ports:
+      - "9530:9530"
+    volumes:
+      - ./app:/app
+      - ./data:/app/data
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+      # 部署时自行设置 API Key，切勿提交真实值
+      - NAS_API_KEY=${NAS_API_KEY}

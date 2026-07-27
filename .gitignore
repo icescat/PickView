@@ -1,0 +1,72 @@
+# =====================
+# 操作系统
+# =====================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =====================
+# IDE / 编辑器
+# =====================
+.idea/
+*.iml
+.vscode/
+
+# =====================
+# CodeGraph 索引
+# =====================
+.codegraph/
+
+# =====================
+# 构建产物 / 缓存（Android / Gradle）
+# =====================
+**/build/
+**/.gradle/
+**/.cxx/
+**/.externalNativeBuild/
+**/captures/
+**/kspCaches/
+
+# =====================
+# 本地配置 / 签名（含敏感信息）
+# =====================
+local.properties
+signing.properties
+**/google-services.json
+
+# =====================
+# Android 二进制依赖（体积过大，需通过 submodule 拉取）
+# bv/libs 与 bvpad/libs 的 .aar 文件来源：https://github.com/aaa1115910/bv-libs
+# =====================
+*.aar
+*.jar
+
+# =====================
+# Python（fnosserver）
+# =====================
+__pycache__/
+*.pyc
+*.pyo
+venv/
+.venv/
+
+# =====================
+# 数据库 / 数据
+# =====================
+*.db
+*.db-journal
+fnosserver/app/data/
+
+# =====================
+# 日志 / 崩溃转储
+# =====================
+*.log
+hs_err_pid*
+replay_pid*
+build_log.txt
+build_output.txt
+
+# =====================
+# Kotlin 编译错误日志
+# =====================
+**/.kotlin/errors/
